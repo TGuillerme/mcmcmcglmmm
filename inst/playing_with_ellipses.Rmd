@@ -1,0 +1,268 @@
+---
+title: "Playing with ellipses"
+author: "Thomas Guillerme"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    fig_width: 6
+    fig_height: 6
+---
+
+# Playing around with VCV matrices
+
+Here's a set of tools for playing around with ellipses (or VCV matrices, or eigen vectors, or whatever, they're all the same).
+These couple of functions could be useful for simulating data for getting null expectations (especially in high dimension spaces) or for an eventual review paper.
+
+
+```{r, eval = TRUE}
+library(mcmcmcglmmm)
+## Note that the plotting functions requires the ellipse and the rgl packages (but not need to load them)
+require("ellipse")
+require("rgl")
+```
+
+
+```{r, rgl_setup, echo = FALSE}
+knitr::knit_hooks$set(webgl = hook_webgl)
+```
+
+
+### Basic example
+
+Here is a basic example on how to use `make.VCV` to create a variance covariance matrix.
+Lets start with a non-covarying 2D ellipse which is the default:
+
+```{r}
+## Making a non-covarying 2D ellipse
+a_circle <- make.VCV()
+```
+
+This creates a list containing `$VCV`, the VCV matrix, `$loc`, it's location in space (that's usually `$Sol` in `MCMCglmm`).
+
+```{r}
+## What's in it?
+a_circle
+```
+
+You can then plot this using `plot.VCV` or convert it into various formats (TODO: for now only a major axes matrix)
+
+```{r}
+## Converting it into it's major axes
+convert.VCV(a_circle)
+## Plotting it
+plot.VCV(a_circle)
+```
+
+Note that by default the plot function plots the 95% CI ellipse around the VCV matrix and it's two 95% major axes.
+The plot option also allows to display the eigen vectors and eigen values (`eigen.vectors = TRUE` or/and `eigen.values = TRUE`) but also the dimensions' VCV axes: this is the axis of the length of the variance (the diagonal in the matrix) and with an angle scaled as a proportion of 45/2 degrees towards the other axis (i.e. if there is no correlation, both axes are at an angle of 90 and if there is a correlation of 1, both axes are at an angle of 0).
+In a circle, all these things are overlaping (eigen vectors = eigen values = VCV vectors).
+
+```{r}
+## Plotting it
+plot.VCV(a_circle, VCV.vectors = TRUE)
+```
+
+Note that you can use any usual graphical argument here (like `lwd`, `col`, etc...).
+If you want one of these arguments to only affect one aspect of the graph (e.g. colouring _only_ the eigen.vectors in pink) you can use the syntax `option.aspect = something` (e.g. `col.eigen.vectors = "pink"`).
+
+### Something more complex
+
+So, in the end we're interested in comparing different VCV matrices with different properties.
+Here I'm going through a still rather simple 2D examples but with more options.
+
+First we can give some covariance component to our first example:
+
+```{r}
+## A covarying circle
+covar_circle <- make.VCV(covariance = 0.4)
+```
+
+This can still be thought as "circle" (although it is flattened in the direction of the covariance) since the variance in the the VCV matrix is still equal for each dimensions (1).
+We can visualise that by adding a the variance vectors of the ellipse and their covariance direction: first for the previous `a_circle` object and then for the covarying one:
+
+```{r}
+## Plotting the circle with the VCV vectors
+plot.VCV(covar_circle, VCV.vectors = TRUE)
+```
+
+Again, this is still "circular" since the two VCV vectors have the same lengths: i.e. both vectors have the same length (the diagonal of the VCV matrix).
+
+We can create something different by adding a shape component to `make.VCV`.
+The shape component determines the roundness of an VCV matrix.
+A shape of 1 is a perfect circle (or a sphere, or a hypersphere), a value of 0.5 makes for a regular ellipse (where each major axis is equal to half previous' major axis).
+A value between 1 and 0.5 makes pancakes (use a value closer to 1 for nice crêpes and something closer to 0.5 for flying saucer).
+And a value between 0.5 and 0 makes for more cigar shape ellipses (with a value of 0 making the ultimately thin cigar: a one dimensional line).
+In practice, the shape is the lambda parameter of an exponential distribution with $(0;1)$ scaled to be $(log(-4);log(4))$ and $0 = log(0)$ and $1 = log(Inf)$.
+
+It's probably easier to visualise the effect of the shape parameter from this graph that shows several shape values (and their equivalent lambda) and the length of each axis (not that when the shape is equal to 1, all axes are the same length and when lambda is 0, only one axis is > 0).
+
+```{r, echo = FALSE}
+source("../R/make.VCV.R")
+## The sequence of shape values
+input_values <- seq(from = 0, to = 1, length.out = 11)
+## Converting them into lambda values
+shape_list <- get.lambda(input_values)
+## Plotting all the values
+plot(NULL, xlim = c(0,1), ylim = c(0,1), xlab = "Dimensions", ylab = "Axes lengths (proportional)", main = "Axis lengths with in 100D", xaxt = "n")
+axis(1, at = seq(from = 0, to = 1, length.out = 11), label = seq(from = 0, to = 100, length.out = 11))
+cols <- rainbow(length(shape_list))
+for(i in 1:length(shape_list)) {
+    lines(generate.shape(dimensions = 100, lambda = shape_list[i]), col = cols[i])
+}
+legend(x = 0.5, y = 0.75, legend = paste(paste0("shape = ", round(input_values, 1)), paste0("lambda = ", round(shape_list, 2)), sep = "; "), lty = 1, col = cols, cex = 0.7)
+```
+
+This is the visualisation for ellipses in 100 dimensions which can be hard to grasp (really?).
+It can be more intuitive to look at it in 3D (but less nice looking in the graph).
+Note we're also adding the option `min.thick = 0.01` so that all axes have a minimum thickness of 1%.
+
+```{r, echo = FALSE}
+## Run the example with 3D and minimum = 0.1
+input_values <- seq(from = 0, to = 1, length.out = 11)
+shape_list <- get.lambda(input_values)
+plot(NULL, xlim = c(0,1), ylim = c(0,1), xlab = "Dimensions", ylab = "Axis length (proportional)", main = "Axis lengths with in 3D\nwith min.thick = 0.01", xaxt = "n")
+axis(1, at = c(0, 0.5, 1), label = c(1, 2, 3))
+cols <- rainbow(length(shape_list))
+for(i in 1:length(shape_list)) {
+    lines(generate.shape(dimensions = 3, lambda = shape_list[i], min.thick = 0.01), col = cols[i])
+}
+legend(x = 0.5, y = 0.75, legend = paste(paste0("shape = ", round(input_values, 1)), paste0("lambda = ", round(shape_list, 2)), sep = "; "), lty = 1, col = cols, cex = 0.7)
+```
+
+So with that, let's create and visualise a regular ellipse:
+
+```{r}
+## A regular ellipse (no covariance)
+regular_ellipse <- make.VCV(shape = 0.5)
+## Plotting it
+plot.VCV(regular_ellipse, VCV.vectors = TRUE)
+```
+
+And we can of course make that ellipse covary as well!
+
+```{r}
+## A regular ellipse (with a negative covariance)
+regular_ellipse_covar <- make.VCV(shape = 0.5, covariance = -0.6)
+## Plotting it
+plot.VCV(regular_ellipse_covar, VCV.vectors = TRUE)
+```
+
+You can also visualise how the roundness score is calculated using the `plot.roundness` function:
+
+```{r}
+plot.roundness(regular_ellipse_covar)
+```
+
+Note that although the required roundness was 0.5, the effective roundness is always an approximation of that based on the number of dimensions (the more dimensions, the more precise the roundness):
+
+```{r}
+plot.roundness(make.VCV(shape = 1/3, dimensions = 100))
+```
+
+Note that when covariance is negative, the angle between the VCV vectors is > 90.
+
+### 3D example (and more)
+
+Of course it is possible to set the number of dimensions of the VCV matrix > 2.
+For example, one can do a 3D pancake (with some covariance) pretty easily.
+Also, for the sake of optional arguments demonstration, we'll make the pancake 10 times bigger and centre it on the coordinates (5,5,5):
+
+```{r, webgl = TRUE}
+## A 3D covarying pancake
+pancake_3d_covar <- make.VCV(shape = 0.75, dimensions = 3, covariance = 1/3, size = 10, position = 5, min.thick = 0.05)
+## Plotting it in 3D (requires rgl)
+plot.VCV(pancake_3d_covar, dimensions = c(1,2,3))
+```
+
+# Comparing VCV matrices
+
+All these examples above are just showing how to use the functions.
+In this section we're gonna see how using these functions can allow us to make some null models to compare ellipses in n dimensions.
+
+For that we're going to use several functions from the `dispRity` package latest update (1.7).
+
+> For now you'll have to install the version 1.6.7 since dispRity 1.7 in still work in progress. NOTE THAT THIS VERSION IS STILL A DRAFT AND MIGHT NOT BE SUITABLE FOR RESEARCH (contact me: guillert@tcd.ie for more info).
+
+```{r}
+if(!require(dispRity)) {
+  devtools::install_github("TGuillerme/dispRity", ref = "MCMCglmm")
+}
+
+```
+
+
+
+Here we are going to build a set of ellipses with the variation of each of the parameters: the shape, the covariance, the size and the position.
+
+```{r}
+## Parameters variables
+shape_var <- c(1, 0.75, 0.5, 0.25)
+covar_var <- c(0, 0.3, 0.6)
+sizes_var <- c(1, 5)
+posit_var <- c(0, 5)
+
+## List of parameters
+all_params <- matrix(NA, ncol = 4, nrow = 4*3*2*2)
+colnames(all_params) <- c("shape", "covar", "sizes", "posit")
+all_params[, "shape"] <- rep(shape_var, 3*2*2)
+all_params[, "covar"] <- rep(rep(covar_var, each = 4), 4)
+all_params[, "sizes"] <- rep(rep(sizes_var, each = 3*4), 2)
+all_params[, "posit"] <- rep(posit_var, each = 4*3*2)
+rownames(all_params) <- apply(all_params, 1, function(row) paste(paste(names(row), row, sep = ""), collapse = "_"))
+```
+
+```{r, echo = FALSE}
+knitr::kable(all_params)
+```
+
+We will then compare each VCV matrices with four basic metrics to recover these aspects: the shape, orientation, size and position differences.
+
+But first, let's create all these ellipses.
+First we'll do one set in 3D with a minimum thickness of 5%.
+
+```{r}
+## Function for looping through the shapes
+VCV.params <- function(row, min.thick = 0.05, dimensions = 3) {
+    return(make.VCV(shape = row[1], covariance = row[2], size = row[3], position = row[4], min.thick = min.thick, dimensions = dimensions))
+}
+## Creating all VCV matrices
+VCVs_list <- apply(all_params, 1, VCV.params)
+
+## Creating a dispRity object for simplifying the calculations
+subsets <- lapply(as.list(names(VCVs_list)), function(x) return(list(elements = NA)))
+names(subsets) <- names(VCVs_list)
+all_VCV <- make.dispRity(data = matrix(NA), subsets = subsets)
+all_VCV$call$subsets <- "covar"
+all_VCV$call$dimensions <- 1:3
+all_VCV$call$bootstrap <- list(1, "covar", NULL)
+```
+
+For all these matrices we can then measure:
+ * the shape as the "roundness" metric (function `roundness` below).
+ > TG: TODO this shape metric must probably already exist somewhere. Need to find the name.
+ * the orientation as the projection angle (function `dispRity::projections.between`)
+ * the size as the ellipsoid volume (function `dispRity::ellipse.volume`)
+ * the position as the distance between centres (function `dispRity::group.dist`)
+
+```{r}
+## The roundness function
+roundness <- function(matrix) {
+  y <- sort(diag(matrix))
+  x <- seq(from = 0, to = 1, length.out = length(y))
+  sum(diff(x)*zoo::rollmean(y, 2))
+} 
+## The roundness difference function
+roundness.diff <- function(matrix, matrix2) {
+  return(roundness(matrix) - roundness(matrix2))
+}
+## The ellipse.volume difference function
+ellipse.volume.diff <- function(matrix, matrix2) {
+  return(ellipse.volume(matrix) - ellipse.volume(matrix2))
+}
+```
+
+```{r}
+## Calculate the projections
+test <- dispRity(all_VCV, metric = projections.between, measure = "angle")
+
+```

@@ -1,0 +1,290 @@
+---
+title: "mini chains MCMCglmm method"
+author: "Thomas Guillerme"
+date: "`r Sys.Date()`"
+bibliography: references.bib
+output:
+  html_document:
+    fig_width: 8
+    fig_height: 8
+---
+
+```{r, echo = FALSE}
+## For a fancy vignette
+library(knitr)
+```
+
+This vignette explains the details of how the mini chains MCMCglmm method works and how to use it's implementation in the `mcmcmcglmmm` package.
+Note that this method is entirely based on Jarrod Hadfield's [`MCMCglmm` package](https://cran.r-project.org/web/packages/MCMCglmm/index.html) which fits multivariate generalised linear mixed models using markov chain monte carlo techniques [@hadfield2010]. 
+The `MCMCglmm` method **will not be explained in details here**.
+If you need to know more about this method, please refer to the excellent vignettes provided by the `MCMCglmm` package (a brief [overview](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/Overview.pdf) and a more advanced set of [course notes](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/CourseNotes.pdf)).
+
+## Installation and requirements
+
+To install the `mcmcmcglmmm` package, you can do it by directly downloading the latest version on GitHub using `devtools`:
+
+```{r install_mcmcmcglmmm, eval = FALSE}
+## Installing mcmcmcglmmm
+devtools::install_github("TGuillerme/elaboration_exploration_bird_beaks/mcmcmcglmmm")
+```
+
+It also relies on the latest version of the `dispRity` package (>=1.6.8) for some specific background functions.
+The package will automatically install the latest version of `MCMCglmm` and `dispRity`.
+
+```{r load_mcmcmcglmmm, eval = TRUE, message = FALSE}
+set.seed(42)
+## Loading mcmcmcglmmm
+library(mcmcmcglmmm)
+
+## Loading the demo data and trees
+data(demo_data)
+data(demo_tree)
+```
+
+The data loaded by `demo_data` and `demo_tree` is a small dataset from @cooney2017.
+It contains 55 species data frame containing 5 dimensions, species names and clade names and one corresponding phylogenetic tree for the 55 species. 
+
+Here is what the dataset looks like:
+
+```{r, echo = FALSE}
+kable(head(demo_data))
+```
+Note that the `"animal"` column is required for `MCMCglmm` (but please refer to the function manuals referenced above for more details).
+
+And here's what the tree looks like:
+
+```{r, echo = FALSE}
+plot(ladderize(demo_tree), cex = 0.5)
+```
+
+### Using your own data
+
+For simplicity further down the line, or if you want to follow this vignette with your own data, we are going to name the `demo_data` `trait_space` (here an ordinated morphospace) and create a list of three `demo_tree` (that are identical) to demonstrate how `mcmcmcglmmm` works on multiple trees.
+Feel free to replace `demo_data` and `demo_tree` in the following snippet by your own data for more fun (the result of the tutorial will use the object names `trait_space` `consensus_tree` and `trees_list`).
+
+```{r, eval = TRUE}
+## Renaming the data
+trait_space <- demo_data
+consensus_tree <- demo_tree
+trees_list <- list(demo_tree, demo_tree, demo_tree)
+class(trees_list) <- "multiPhylo"
+```
+
+# The mini chains MCMCglmm method
+
+To estimate the variance-covariance matrix for the phylogeny and each clade we run multivariate generalised linear mixed models (MCMCglmm) using the `MCMCglmm` package [@hadfield2010].
+
+## The model
+
+For this demo, we are going to use a mixed model with two nested random levels, one for the whole phylogeny and one for each different clade on our response variable: the first 3 PC axes from the trait space.
+In brief the model we're using has the following structure:
+
+> model = traits + random terms + residuals terms
+
+Where `traits` is the 3 dimensional ordination values for each species, `random terms` are the two nested phylogenetic effects and `residuals` are the residuals on the dataset. In `MCMCglmm` pseudo code, the model looks like this (for each `formula`, `random` and `residuals` arguments):
+
+```
+formula   = PC1:8 ~ trait:clade-1
+random    = ~ us(at.level(clade):trait):animal + us(trait):animal
+residuals = ~ us(trait):units
+```
+
+In this demo case, the model would actually run pretty fast on each of the demo trees.
+If you have a small dataset like presented here, you might be interested in looking at the older `mulTree` [@mulTree] method that will simply run this model on the three trees in a parallelisable way.
+
+## `mcmcmcglmmm`
+
+However, on much larger datasets, this becomes very quickly untractable computationally.
+For example, for a dataset of  8 dimensions, 8k species and 31 nested levels it takes approximately 2 years and a whopping 4TB of RAM to barely get results for one tree!
+
+Thus, to increase the speed of these analyses, while taking phylogenetic uncertainty into account, we used a highly parallelisable "mini chains" approach.
+In brief, it runs multiple short `MCMCglmm` analyses on multiple trees and pulls the results together into one larger `MCMCglmm` that contains more variation due to phylogenetic uncertainty (where the size of the chains are optimised for speed and low RAM usage).
+
+[mini chain diagram](mini-chains_diagram.png "Mini chains diagram")
+
+The method works as follows:
+ 
+ 1- run three models without burnin on a consensus tree with flat priors: these are the parametrisation chains.
+ 
+ 2- extract the burnin length and the posteriors to be used as priors from the parametrisation chains.
+ 
+ 3- run multiple models with 10 samplings past the burnin using as priors the posteriors from the parametrisation chains: these are the mini chains.
+ 
+ 4- combine all the post burning 10 samples from the mini chains into one big chain to be used as the posterior from the model.
+
+Each step are described and demonstrated in more details below.
+
+Using this method allowed us to run the big model described above in approximately 40 hours and 8GB of RAM per tree!
+
+### Mini-chains parametrization
+
+First we run three independent MCMC chains with the model and data described above using the consensus tree and flat priors (with a belief parameter of 0.02).
+We ran these chains for 50k iterations, sampling every 500 iterations (with no burnin).
+
+To do so, we can use the `make.mini.chains` function that creates a `mini.chains` object that contains all the information (data, model and trees) for further analysis.
+ 
+```{r, parametrise_the_model, eval = TRUE}
+## Set up the parametrising chains models on the demo data
+param_MCMCglmm <- make.mini.chains(data         = trait_space,
+                                   dimensions   = 1:3,
+                                   tree         = consensus_tree,
+                                   trait.family = "gaussian",
+                                   randoms      = c("global", "clade"),
+                                   residuals    = "global",
+                                   priors       = 0.02,
+                                   verbose      = TRUE,
+                                   parameters   = list(
+                                       nitt   = 50000,
+                                       thin   = 500,
+                                       burnin = 0))
+## What is this new object?
+class(param_MCMCglmm)
+```
+
+The main arguments here are:
+
+ * `data`: the dataset as described above. If you use the phylogeny or clades as a random term, it needs to have one column called `"animal"` and another one named by the grouping factor (here `"clade"`).
+ * `dimensions`: which dimensions from `data` to include. If the argument is a numeric value (like `1:3`) it automatically picks the corresponding columns that have numeric values (here `"PC1"`, `"PC2"` and `"PC3"`). However, you can also directly specify the name of the column (e.g. `c("PC1", "PC2", "PC3")` would five the same results).
+ * `tree`: the tree to use. Here we use only one tree (the consensus one) but later we are going to use a tree distribution.
+ * `trait.family`: which corresponds to the `family` argument in `MCMCglmm`. Note that if you specify only one family (here `"gaussian"`) it is applied to all the traits (here `"PC1"`, `"PC2"` and `"PC3"`). But you can also specify a vector of families (e.g. `c("gaussian", "poisson", "gaussian")`).
+ * `randoms`: which random terms to use. Here `"global"` is the generic term for applying a random term to the whole dataset (the phylogeny) and `"clade` allows to apply another nested random terms to the elements described in the column `"clade"` in the dataset. Note that you can play around with many more options for the random terms by looking at the function manual (`?make.mini.chains`).
+ * `residuals`: which residual terms to use. This is the same as the `randoms` argument. The `"global"` term is the generic term for applying the residuals to the whole dataset (traits) and no other nested term has been provided.
+ * `priors`: setting up the prior. Here you can provide a list of priors in the proper `MCMCglmm` format (see below) or, as we are doing here, simply a flat prior for each term. To provide a flat prior, you just need to give the belief parameter value (here 2%) and the function will generate the correct flat priors attached to this belief.
+
+The other arguments here are either self evident (e.g `verbose`) or the same as for `MCMCglmm` (here `parameters` is just a list of arguments with the correct names to be passed to `MCMCglmm`).
+
+Once the mini.chain is ready, you can run it using the `run.mini.chains` function given the mini chain (`param_MCMCglmm`) and a number of replicates (here 3).
+
+> This step in this example should take anywhere around 1 to 5 minutes.
+
+```{r, eval = FALSE, print = FALSE}
+## Running the three MCMCglmm models
+parametrization <- run.mini.chains(param_MCMCglmm, replicates = 3)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+## Saving the model for speed later one
+save(parametrization, file = "../data/parametrization.vignette.rda")
+```
+
+```{r, eval = TRUE, echo = FALSE}
+## Loading the model for
+load("../data/parametrization.vignette.rda")
+```
+
+From these three chains, we can first diagnose the state of the run.
+
+```{r, eval = TRUE}
+## Did the parametrization chains converged?
+diagnose.mini.chains(parametrization)
+```
+
+For full convergence, we would like point estimates of at least 1.1 or higher which is not the case here.
+This is not too big of a problem here though since we only want to run these chains for parametrizing the `mcmcmcglmmm` later on.
+To get the three chains to converge we could run them for longer but there is obviously a trade-off between running a long parameterization chain and taking advantage of the speed of the `mcmcmcglmmm` method.
+
+Regardless, we can now extract the parameters for our proper run from the parametrization chains using the `extract.parameters` function:
+
+```{r, get_model_parameters, eval = TRUE}
+## Extract the parameters from the parameter chains
+estimated_params <- extract.parameters(parametrization)
+## What's in the estimated parameters?
+str(estimated_params)
+```
+
+This function automatically extracts from the posteriors of the parametrization chains the following parameters:
+ * The minimum burnin time (defined as the number of iterations when the chain reaches the median likelihood value times 1.1).
+ * The posteriors from the R-Structure, G-Structure and fixed effects (means and variance-covariance; ignoring the burnin) that will be used as priors.
+
+For all of these parameters, the median value from the three chains is used.
+
+### Running the mini-chains
+
+Once we have aquired the parameters, we can set up the proper mini-chain MCMCglmm model using:
+
+ 1. the model described above,
+ 2. a tree distribution,
+ 3. the estimated priors (with a degree of parameter belief of 5% `nu = 0.05`) to run for `nitt` generations were `nitt` is equal to the previously estimated burnin phase + 10 sampled iterations (`nitt = burnin + thin * 10`).
+
+Each mini chain will then run for 10 post-burnin posterior samples on a random tree from the tree distribution.
+In other words, each mini chain is a very short sample post-burnin iterated among the whole tree distribution.
+The two main advantages of this mini-chain approach is that:
+  1. they are much faster to run since no diagnosis of convergence is necessary and the chains are only run for a relatively short time (which allow several chains to crash/fail without losing all the outputs); and
+  2. they take into account tree uncertainty without having to run the complete `MCMCglmm` on all trees (c.f. `mulTree` @mulTree).
+
+To do so, we need to create a new mini.chains object with the tree distribution (`tree_list`) and the estimated parameters from the parametrization chain:
+
+```{r, set_the_mini_chains, eval = TRUE}
+## We also need to decide about the thinning parameter...
+thin <- 500
+## ... and the number of post-burnin posteriors (samples) we want per chain
+samples <- 10
+
+## Set up the mini-chains models
+minichain_model <- make.mini.chains(data         = trait_space,
+                                    dimensions   = 1:3,
+                                    tree         = trees_list,
+                                    trait.family = "gaussian",
+                                    randoms      = c("global", "clade"),
+                                    residuals    = "global",
+                                    priors       = estimated_params$priors,
+                                    verbose      = TRUE,
+                                    parameters   = list(
+                                        nitt   = estimated_params$burnin + thin * samples,
+                                        thin   = thin,
+                                        burnin = estimated_params$burnin))
+```
+
+We can then run the mini chains over a set number of replicates (say 100).
+Again, each iteration, a random tree is selected to get an estimate of the variance-covariance matrices including phylogenetic uncertainty.
+
+```{r, running_replicates, eval = FALSE}
+## The number of replicates
+n_reps <- 100
+
+## Run the required chains
+minichain_results <- run.mini.chains(minichain_model, replicates = n_reps)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+## Saving the model for speed later one
+save(minichain_results, file = "../data/minichain_results.vignette.rda")
+```
+
+This can take some time (around 10 to 20 minutes) so you can directly load the following results from a previous run:
+
+```{r, eval = TRUE, echo = TRUE}
+## Loading the model for
+load("../data/minichain_results.vignette.rda")
+```
+
+Each of these mini chains are still independent (basically we have a list of 100 small `MCMCglmm` objects) so we need to combine them into a unique `MCMCglmm` object that contains all the posteriors:
+
+```{r, eval = TRUE}
+## Combining the results as one big MCMC
+combined_results <- combine.mini.chains(minichain_results)
+```
+
+We can then analyse this data as a normal `MCMCglmm` object.
+
+```{r, eval = TRUE}
+## Summarising the object as a MCMCglmm
+summary(combined_results)
+```
+
+And we can also diagnose the results using the `diagnose.mini.chains` function again.
+Note that now that we have only one composite chain, the convergence diagnosis is irrelevant.
+We can simply look at the effective sample size (ESS) of the whole chain to see if it contains enough usable posterior information.
+
+```{r, eval = TRUE}
+## Diagnosing the results
+diagnose <- diagnose.mini.chains(combined_results)
+```
+
+As we can see here, there is no parameter that has an estimated ESS below 200 which is really good!
+
+## Going further
+
+`dispRity`
+
+## References
