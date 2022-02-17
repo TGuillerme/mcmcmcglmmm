@@ -11,11 +11,3 @@ export(make.mini.chains)
 export(run.mini.chains)
 export(diagnose.mini.chains)
 export(combine.mini.chains)
-
-## VCV playing functions
-export(plot.roundness)
-export(plot.VCV)
-export(make.VCV)
-export(convert.VCV)
-export(get.one.axis)
-export(get.lambda)
