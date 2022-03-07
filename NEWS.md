@@ -1,4 +1,4 @@
-mcmcmcglmmm v0.0.5 (2022-01-06)
+mcmcmcglmmm v0.1.0 (2022-03-07)
 =========================
 
 ### NEW FEATURES
