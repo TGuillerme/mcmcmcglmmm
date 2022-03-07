@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/TGuillerme/mcmcmcglmmmm/workflows/R-CMD-check/badge.svg)](https://github.com/TGuillerme/mcmcmcglmmmm/actions)
+[![R-CMD-check](https://github.com/TGuillerme/mcmcmcglmmm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/TGuillerme/mcmcmcglmmm/actions/workflows/R-CMD-check.yaml)
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 <!-- [![develVersion](https://img.shields.io/badge/devel%20version-1.6.8-green.svg?style=flat)](https://github.com/TGuillerme/dispRity) -->
 <!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1186467.svg)](https://doi.org/10.5281/zenodo.1186467) -->
