@@ -1,8 +1,11 @@
 ## Imports
 import(MCMCglmm)
 import(dispRity)
-importFrom("graphics", "hist", "abline")
+importFrom("graphics", "hist", "abline", "par")
 importFrom("coda", "gelman.diag")
+importFrom("methods", "is")
+importFrom("stats", "as.formula", "median")
+
 
 ## Mini chain functions
 export(extract.parameters)

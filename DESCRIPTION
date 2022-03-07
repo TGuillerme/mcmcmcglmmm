@@ -11,7 +11,9 @@ Depends:
     MCMCglmm
 Imports:
     coda,
-    graphics
+    graphics,
+    methods,
+    stats
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
