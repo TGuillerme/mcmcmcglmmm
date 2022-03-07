@@ -1,4 +1,4 @@
 library(testthat)
-library(beer)
+library(mcmcmcglmmm)
 
-test_check("beer")
+test_check("mcmcmcglmmm")
