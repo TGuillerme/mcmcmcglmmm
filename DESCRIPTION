@@ -1,7 +1,7 @@
 Package: mcmcmcglmmm
 Title: Mini chains MCMCglmm methods
-Version: 0.1.0
-Date: 2022-03-07
+Version: 0.2.0
+Date: 2022-04-04
 Author: Thomas Guillerme [aut, cre, cph]
 Maintainer: Thomas Guillerme <guillert@tcd.ie>
 Description: Running mini chains for MCMCglmm analyses

@@ -27,9 +27,11 @@ run.mini.chains <- function(mini.chains, replicates, parallel, path, file.name =
         warning("parallel not implemented yet.")
     }
 
-    ## mini.chains
-    # output <- replicate(replicates, run.a.chain(mini.chains, record.tree), simplify = FALSE)
-    # class(output) <- c("mini.chains")
+    if(!is.null(randomised.factors)) {
+        if(!all(corrects <- randomised.factors %in% colnames(mini.chains$data))) {
+            stop(paste0("Factor column named: ", paste(randomised.factors[!corrects], collapse = ", "), " not found in the data."))
+        }
+    }
 
     ## Run the mini.chains
     if(!record.tree) {
@@ -54,20 +56,12 @@ run.mini.chains <- function(mini.chains, replicates, parallel, path, file.name =
 shuffle.factor <- function(data, randomised.factors) {
     if(is.null(randomised.factors)) {
         return(data)
+    } else {
+        for(one_column in 1:length(randomised.factors)) {
+            ## Resample the factor
+            data[, randomised.factors[one_column]] <- sample(data[, randomised.factors[one_column]], size = nrow(data), replace = FALSE)
+        }
+        return(data)
     }
 }
-
-# run.a.chain <- function(mini.chains, record.tree = FALSE) {
-#     if(!record.tree) {
-#         return(mini.chains[[sample(1, 1:length(mini.chains))]]$run())
-#     } else {
-#         selected_tree <- sample(1, 1:length(mini.chains))
-#         ## Run the chain
-#         chain <- mini.chains[[selected_tree]]$run()
-#         ## Add the tree
-#         chain$tree <- mini.chains[[selected_tree]]$tree
-#         return(chain)
-#     }
-# }
-
 

@@ -22,12 +22,12 @@ library(mcmcmcglmmm)
 
 <!-- Vignettes are available here -->
 
-## Latest major patch notes
-* 2022/01/24 v1.0 
+<!-- ## Latest major patch notes
+* 2022/XX/XX v1.0 
   * First stable release!
 
 Previous patch notes and notes for the *next version* can be seen [here](https://github.com/TGuillerme/mcmcmcglmmm/blob/master/NEWS.md).
-
+ -->
 Authors
 -------
 

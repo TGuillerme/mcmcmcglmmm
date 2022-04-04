@@ -10,7 +10,8 @@ run.mini.chains(
   parallel,
   path,
   file.name = "mini.chains",
-  record.tree = FALSE
+  record.tree = FALSE,
+  randomised.factors = NULL
 )
 }
 \arguments{
@@ -24,10 +25,16 @@ run.mini.chains(
 
 \item{record.tree}{optional, whether to record which tree was used for each replicate (default is \code{FALSE}).}
 
+\item{randomised.factors}{optional, the names of factors to randomised to create some null models (see details).}
+
 \item{file}{the prefix for the file name (will be \code{prefix_replicates.rda}).}
 }
 \description{
 Runs a list of mini.chains objects (MCMCglmm)
+}
+\details{
+When using \code{randomise.factors}, you can provide the name of a column in the data (or a vector of columns) to randomise the factors. The factors are randomised so that the same number of elements are contained in each level.
+If set to \code{NULL} (default), the factors are not randomised.
 }
 \examples{
 

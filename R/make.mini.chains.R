@@ -83,7 +83,7 @@ make.mini.chains <- function(data, dimensions, tree, trait.family = "gaussian", 
     }
 
     ## Check the dimensionality of the data
-    if(!all(dim_check <- apply(data[, dimensions], 2, is, "numeric"))) {
+    if(!all(dim_check <- apply(data[, dimensions, drop = FALSE], 2, is, "numeric"))) {
         stop(paste0("Invalid dimensions (not numeric?): ", paste(names(which(!dim_check)), collapse = ", "), "."))
     }
 
@@ -97,7 +97,7 @@ make.mini.chains <- function(data, dimensions, tree, trait.family = "gaussian", 
     }
     ## Reduce the dataset size
     non_data <- unlist(lapply(as.list(1:ncol(data)), function(col, data) return(class(data[,col])), data = data))
-    data_reduce <- data[, c(select_dim, which(non_data != "numeric"))]
+    data_reduce <- data[, c(select_dim, which(non_data != "numeric")), drop = FALSE]
     
     ## Match the data and the trees
     cleaning <- clean.data(data_reduce, tree)
@@ -201,29 +201,6 @@ make.mini.chains <- function(data, dimensions, tree, trait.family = "gaussian", 
     }
 
     ## Setting the tree(s)
-    # warning("DEBUG: make.mini.chains")
-    # output <- lapply(tree, function(tree, fixed, random, rvoc, family, data, priors, verbose, parameters, ...)
-    #    return(list(data = data,
-    #                tree = tree,
-    #                ## The MCMCglmm function
-    #                run  = function(data, tree) MCMCglmm(fixed    = fixed,
-    #                                           random   = random,
-    #                                           rcov     = rcov,
-    #                                           family   = family,
-    #                                           pedigree = tree,
-    #                                           data     = data,
-    #                                           prior    = priors,
-    #                                           verbose  = verbose,
-    #                                           burnin   = parameters$burnin,
-    #                                           nitt     = parameters$nitt,
-    #                                           thin     = parameters$thin,
-    #                                           saveX    = FALSE,
-    #                                           saveZ    = FALSE,
-    #                                           saveXL   = FALSE,
-    #                                           pl       = FALSE,
-    #                                           ...)))
-    #                 , fixed, random, rcov, family, data, priors, verbose, parameters, ...)
-
     params_list <- list(fixed = fixed, random = random, rcov = rcov, family = family, priors = priors, verbose = verbose, parameters = parameters, ...)
     output <- list(data   = data_reduce,
                    tree   = tree,

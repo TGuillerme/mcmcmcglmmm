@@ -222,5 +222,38 @@ test_that("run/combine.mini.chains works", {
 })
 
 test_that("randomised.factors work", {
+    data(morphdat)
+    data(tree)
+    tree_list <- list(tree)
+    class(tree_list) <- "multiPhylo"
+
+    priors_list <- flat.prior(ntraits = 3, randoms = 1, residuals = 3, nu = 0.1)
+    test <- make.mini.chains(data = morphdat, tree = tree, dimensions = c(1,2,3), verbose = FALSE, residuals = "clade", priors = priors_list, randoms = "global")
+    expect_is(test, c("mini.chains"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
+    ## Run!
+    set.seed(1)
+    tust <- run.mini.chains(test, replicates = 1)
+    expect_is(tust[[1]], "MCMCglmm")
+    expect_equal(paste0(as.character(tust[[1]]$Fixed$formula), collapse = ""),
+                "~cbind(PC1, PC2, PC3)trait:clade - 1")
+    expect_equal(paste0(as.character(tust[[1]]$Random$formula), collapse = ""),
+                "~us(trait):animal")
+    expect_equal(paste0(as.character(tust[[1]]$Residual$formula), collapse = ""),
+                "~us(at.level(clade, 1):trait):units + us(at.level(clade, 2):trait):units + us(at.level(clade, 3):trait):units")
+    expect_equal(round(sum(tust[[1]]$Sol), 6), round(5.847793, 6)) 
+
+    ## Same but randomised
+    set.seed(1)
+    tust <- run.mini.chains(test, replicates = 1, randomised.factors = "clade")
+    expect_is(tust[[1]], "MCMCglmm")
+    expect_equal(paste0(as.character(tust[[1]]$Fixed$formula), collapse = ""),
+                "~cbind(PC1, PC2, PC3)trait:clade - 1")
+    expect_equal(paste0(as.character(tust[[1]]$Random$formula), collapse = ""),
+                "~us(trait):animal")
+    expect_equal(paste0(as.character(tust[[1]]$Residual$formula), collapse = ""),
+                "~us(at.level(clade, 1):trait):units + us(at.level(clade, 2):trait):units + us(at.level(clade, 3):trait):units")
+    expect_equal(round(sum(tust[[1]]$Sol), 6), round(5.383184, 6))  
 
 })
