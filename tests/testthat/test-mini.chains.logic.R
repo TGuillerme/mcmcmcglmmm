@@ -53,10 +53,10 @@ test_that("make.mini.chains works", {
     ## Model 1.2
     test <- make.mini.chains(data = morphdat, tree = tree_list, dimensions = c(1,2), verbose = FALSE)
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 3)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2)trait - 1")
@@ -68,10 +68,10 @@ test_that("make.mini.chains works", {
     ## Model 1
     test <- make.mini.chains(data = morphdat, tree = tree_list, dimensions = c(1,2), verbose = FALSE, residuals = "global")
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 3)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2)trait - 1")
@@ -84,10 +84,10 @@ test_that("make.mini.chains works", {
     ## Model 3.2
     test <- make.mini.chains(data = morphdat, tree = tree_list, dimensions = c(1,2), verbose = FALSE, random = "global")
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 3)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2)trait - 1")
@@ -99,10 +99,10 @@ test_that("make.mini.chains works", {
     ## Model 3
     test <- make.mini.chains(data = morphdat, tree = tree_list, dimensions = c(1,2), verbose = FALSE, random = "global", residuals = "global")
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 3)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2)trait - 1")
@@ -115,10 +115,10 @@ test_that("make.mini.chains works", {
     priors_list <- flat.prior(ntraits = 3, randoms = 1, residuals = 3, nu = 0.1)
     test <- make.mini.chains(data = morphdat, tree = tree, dimensions = c(1:3), verbose = FALSE, residuals = "clade", priors = priors_list, randoms = "global")
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 1)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2, PC3)trait:clade - 1")
@@ -130,10 +130,10 @@ test_that("make.mini.chains works", {
     ## Model 5
     test <- make.mini.chains(data = morphdat, tree = tree, dimensions = c(1:3), verbose = FALSE, residuals = "clade", randoms = "clade")
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 1)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2, PC3)trait:clade - 1")
@@ -145,10 +145,10 @@ test_that("make.mini.chains works", {
     ## Model 6
     test <- make.mini.chains(data = morphdat, tree = tree, dimensions = c(1:3), verbose = FALSE, residuals = "clade", randoms = c("global", "clade"))
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 1)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2, PC3)trait:clade - 1")
@@ -161,10 +161,10 @@ test_that("make.mini.chains works", {
     ## Model 7
     test <- make.mini.chains(data = morphdat, tree = tree, dimensions = c(1:3), verbose = FALSE, residuals = "global", randoms = c("global", "clade"))
     expect_is(test, c("mini.chains"))
-    expect_equal(length(test), 1)
-    expect_equal(names(test[[1]]), c("run"))
+    expect_equal(length(test), 4)
+    expect_equal(names(test), c("data", "tree", "params", "run"))
     ## Run!
-    tust <- test[[1]]$run()
+    tust <- test$run(one_data = test$data, one_tree = test$tree[[1]], params = test$params)
     expect_is(tust, "MCMCglmm")
     expect_equal(paste0(as.character(tust$Fixed$formula), collapse = ""),
                 "~cbind(PC1, PC2, PC3)trait:clade - 1")
@@ -182,15 +182,15 @@ test_that("run/combine.mini.chains works", {
     ## Model 3
     mini.chains <- make.mini.chains(data = morphdat, tree = tree_list, dimensions = c(1,2), verbose = FALSE, randoms = "global", residuals = "global")
     expect_is(mini.chains, c("mini.chains"))
-    expect_equal(length(mini.chains), 3)
-    expect_equal(names(mini.chains[[1]]), c("run"))
+    expect_equal(length(mini.chains), 4)
+    expect_equal(names(mini.chains), c("data", "tree", "params", "run"))
 
     ## Works with record tree
     test <- run.mini.chains(mini.chains, replicates = 2, record.tree = TRUE)
     expect_is(test, c("mini.chains"))
     expect_equal(length(test), 2)
     expect_is(test[[1]], "MCMCglmm")
-    expect_equal(names(test[[1]]), c("Sol","Lambda","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional"))#, "tree"))
+    expect_equal(names(test[[1]]), c("Sol","Lambda","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional", "tree"))
 
     ## Test the runnings
     test <- run.mini.chains(mini.chains, replicates = 10)
@@ -218,5 +218,9 @@ test_that("run/combine.mini.chains works", {
     expect_equal(dim(tust$Sol), c(18, 2))
     expect_equal(dim(tust$VCV), c(18, 8))
     expect_true(file.remove("../test_name_2.rda"))
+
+})
+
+test_that("randomised.factors work", {
 
 })

@@ -201,28 +201,51 @@ make.mini.chains <- function(data, dimensions, tree, trait.family = "gaussian", 
     }
 
     ## Setting the tree(s)
-    output <- lapply(tree, function(tree, fixed, random, rvoc, family, data, priors, verbose, parameters, ...)
-       return(list(#data = data,
-                   #tree = tree,
-                   ## The MCMCglmm function
-                   run  = function() MCMCglmm(fixed    = fixed,
-                                              random   = random,
-                                              rcov     = rcov,
-                                              family   = family,
-                                              pedigree = tree,
-                                              data     = data_reduce,
-                                              prior    = priors,
-                                              verbose  = verbose,
-                                              burnin   = parameters$burnin,
-                                              nitt     = parameters$nitt,
-                                              thin     = parameters$thin,
-                                              saveX    = FALSE,
-                                              saveZ    = FALSE,
-                                              saveXL   = FALSE,
-                                              pl       = FALSE,
-                                              ...)))
-                    , fixed, random, rvoc, family, data, priors, verbose, parameters, ...)
+    # warning("DEBUG: make.mini.chains")
+    # output <- lapply(tree, function(tree, fixed, random, rvoc, family, data, priors, verbose, parameters, ...)
+    #    return(list(data = data,
+    #                tree = tree,
+    #                ## The MCMCglmm function
+    #                run  = function(data, tree) MCMCglmm(fixed    = fixed,
+    #                                           random   = random,
+    #                                           rcov     = rcov,
+    #                                           family   = family,
+    #                                           pedigree = tree,
+    #                                           data     = data,
+    #                                           prior    = priors,
+    #                                           verbose  = verbose,
+    #                                           burnin   = parameters$burnin,
+    #                                           nitt     = parameters$nitt,
+    #                                           thin     = parameters$thin,
+    #                                           saveX    = FALSE,
+    #                                           saveZ    = FALSE,
+    #                                           saveXL   = FALSE,
+    #                                           pl       = FALSE,
+    #                                           ...)))
+    #                 , fixed, random, rcov, family, data, priors, verbose, parameters, ...)
 
+    params_list <- list(fixed = fixed, random = random, rcov = rcov, family = family, priors = priors, verbose = verbose, parameters = parameters, ...)
+    output <- list(data   = data_reduce,
+                   tree   = tree,
+                   params = params_list,
+                   run    = function(one_data, one_tree, params) MCMCglmm(
+                            fixed    = params$fixed,
+                            random   = params$random,
+                            rcov     = params$rcov,
+                            family   = params$family,
+                            pedigree = one_tree,
+                            data     = one_data,
+                            prior    = params$priors,
+                            verbose  = params$verbose,
+                            burnin   = params$parameters$burnin,
+                            nitt     = params$parameters$nitt,
+                            thin     = params$parameters$thin,
+                            saveX    = FALSE,
+                            saveZ    = FALSE,
+                            saveXL   = FALSE,
+                            pl       = FALSE,
+                            ...)
+                 )
     class(output) <- c("mini.chains")
     return(output)
 }
