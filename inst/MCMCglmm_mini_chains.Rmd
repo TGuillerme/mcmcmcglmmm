@@ -50,7 +50,6 @@ devtools::install_github("TGuillerme/mcmcmcglmmm")
 ```{r, echo = TRUE, results = 'hide', message = FALSE, warning = FALSE, eval = TRUE}
 ## Loading the packages
 library(mcmcmcglmmm)
-library(dispRity)
 ``` 
 
 It also relies on the latest version of the [`dispRity`](https://github.com/TGuillerme/dispRity)) package (>=1.6.8) for some specific background functions.
@@ -189,8 +188,6 @@ The main arguments here are:
 The other arguments here are either self evident (e.g `verbose`) or the same as for `MCMCglmm` (here `parameters` is just a list of arguments with the correct names to be passed to `MCMCglmm`).
 Once the mini chain is ready, you can run it using the `run.mini.chains` function given the mini chain (`param_MCMCglmm`) and a number of replicates (here 3).
 
-
-
 ```{r, echo = FALSE, eval = FALSE}
 ## Running the parametrisation chains
 param_results <- run.mini.chains(parametrisation_chains, replicates = 3)
@@ -228,7 +225,6 @@ In this example, we replicated the chains 100 times across 10 random trees.
 We then can use the `combine.mini.chains` function to combine these 100 mini-chains into a single `MCMCglmm` posterior chain. 
 
 > For THE_PAPER we ran the analysis 400 times across 1000 random trees.
-
 
 ```{r, echo = FALSE, eval = FALSE}
 ## Making the mini chains
