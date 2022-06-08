@@ -16,10 +16,10 @@ output:
 library(knitr)
 ```
 
-This vignette explains the details of how the mini chains MCMCglmm method works and how to use it's implementation in the [`mcmcmcglmmm`](https://github.com/TGuillerme/mcmcmcglmmm) package.
-Note that this method is entirely based on Jarrod Hadfield's [`MCMCglmm` package](https://cran.r-project.org/web/packages/MCMCglmm/index.html) which fits multivariate generalised linear mixed models using markov chain monte carlo techniques [@hadfield2010]. 
-The `MCMCglmm` method **will not be explained in details here**.
-If you need to know more about this method, please refer to the excellent vignettes provided by the `MCMCglmm` package (a brief [overview](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/Overview.pdf) and a more advanced set of [course notes](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/CourseNotes.pdf)).
+This vignette explains the details of how the mini chains MCMCglmm method works and how to use its implementation in the [`mcmcmcglmmm`](https://github.com/TGuillerme/mcmcmcglmmm) package.
+Note that this method is entirely based on Jarrod Hadfield's [`MCMCglmm` package](https://cran.r-project.org/web/packages/MCMCglmm/index.html) which fits generalised linear mixed models (GLMM) using Markov chain Monte Carlo techniques [@hadfield2010]. 
+The `MCMCglmm` method **will not be explained in detail here**.
+If you need to know more about this method, please refer to the excellent vignettes provided in the `MCMCglmm` package (a brief [overview](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/Overview.pdf) and a more advanced set of [course notes](https://cran.r-project.org/web/packages/MCMCglmm/vignettes/CourseNotes.pdf)).
 
 <!-- > If you use this vignette in published work, please cite @PAPER and @mcmcmcglmmmDOI. -->
 
@@ -37,7 +37,7 @@ this_is_a_reproducible_R_snippet <- TRUE
 
 ## Installation and requirements
 
-To install the `mcmcmcglmmm` package, you can do it by directly downloading the latest version on GitHub using `devtools`:
+To install the `mcmcmcglmmm` package, you can directly download the latest version on GitHub using `devtools`:
 
 ```{r header, echo = TRUE, results = 'hide', message = FALSE, warning = FALSE, eval = FALSE}
 ## Installing the dispRity package from the CRAN
@@ -53,18 +53,18 @@ library(mcmcmcglmmm)
 ``` 
 
 It also relies on the latest version of the [`dispRity`](https://github.com/TGuillerme/dispRity)) package (>=1.6.8) for some specific background functions.
-The package will automatically install the latest version of `MCMCglmm` and `dispRity`.
+The package will automatically install the latest versions of `MCMCglmm` and `dispRity`.
 
 # Mini chains MCMCglmm method: an efficient way to calculate variance-covariance matrices on big data with phylogenetic uncertainty
 
-One commonly used method to estimate variance-covariance matrices from phylogenetic datasets is to use multivariate generalised linear mixed models.
-This is often done in a Bayesian way using the `MCMCglmm` package (@hadfield2010; cited nearly 4000 times in the last decade).
-The MCMCglmm method allows to run a generalised linear mixed model on a multidimensional dataset with an underlying phylogenetic structure.
+One commonly used method to estimate variance-covariance matrices from phylogenetic datasets is to use generalised linear mixed models (GLMM).
+This is often done in a Bayesian framework using the `MCMCglmm` package (@hadfield2010; cited nearly 4000 times in the last decade).
+The MCMCglmm method allows you to run a GLMM on a multidimensional dataset with an underlying phylogenetic structure.
 <!-- TG:TODO: Expand that from the longevity paper -->.
 
 Using this method we can run a nested phylogenetic model on a multidimensional dataset (here the Charadriiformes PCA shapespace).
 This model will have a the multidimensional trait values as a response and the classic residual terms as an error term.
-Additionally though, we can add a random error term as the phylogenetic signal.
+Additionally though, we can add the phylogenetic signal as a random error term (random effect).
 This random error term can be expanded into four independent nested terms: one for the entire phylogenetic structure and three for each individual clade's phylogenetic structure.
 
 $$\text{data} = \text{traits} + \text{residuals} + (\text{phylogenetic term} + \text{clade term})$$
@@ -78,7 +78,7 @@ residuals = ~ us(trait):units
 ```
 <!-- TG:TODO: explain that much better) -->
 
-> In THE_PAPER we used a dataset of 8748 species and 8 dimensions and a model with 36 nested random terms: one for the whole phylogeny, 8 for each super-order containing at least 15 species and and 27 for each order containing at least 15 species and one residual term.
+> In THE_PAPER we used a dataset of 8748 species and eight PC dimensions, and a model with 36 nested random terms: one for the whole phylogeny, eight for each super-order containing at least 15 species and 27 for each order containing at least 15 species and one residual term.
 
 Although this method is perfectly efficiently implemented on small to relatively big datasets, the major hurdle is the calculation of the variance-covariance matrix that increases following a power law with both the number of species and the number of dimensions.
 Therefore, such method becomes easily untractable on large datasets (>8k species and >3 dimensions).
