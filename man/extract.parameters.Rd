@@ -30,12 +30,6 @@ The parameters that can be extracted are:
 \item \code{"priors"}: a list of priors (from the posteriors)
 }
 }
-\examples{
-
-}
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }

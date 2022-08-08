@@ -27,9 +27,6 @@ flat.prior(ntraits = 2)
 flat.prior(residuals = 1, randoms = 4, ntraits = 3, nu = 0.002)
 
 }
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }

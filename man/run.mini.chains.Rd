@@ -36,12 +36,6 @@ Runs a list of mini.chains objects (MCMCglmm)
 When using \code{randomise.factors}, you can provide the name of a column in the data (or a vector of columns) to randomise the factors. The factors are randomised so that the same number of elements are contained in each level.
 If set to \code{NULL} (default), the factors are not randomised.
 }
-\examples{
-
-}
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }

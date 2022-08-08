@@ -54,8 +54,8 @@ diagnose.mini.chains <- function(mini.chains, what = "eff.samp", plot = TRUE, ..
         op <- par(mfrow = c(length(diagnoses),1))
 
         ## Do one plot
-        one.plot <- function(data, main, what, ...) {
-            graphics::hist(data, main = main, ...)
+        one.plot <- function(ESS, main, what, ...) {
+            graphics::hist(ESS, main = main, ...)
             if(what == "eff.samp") {
                 graphics::abline(v = 200)
             }

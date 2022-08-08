@@ -21,12 +21,6 @@ Diagnose a set of mini chains results
 \details{
 If the input is a list of chains straight from \code{run.mini.chains}, a Gelman and Rubin convergence diagnosis is run (\code{\link[coda]{gelman.diag}}). Else if the input is a single chain combined from \code{combine.mini.chains} only the effective sample size for each parameter (or \code{what}) is measured.
 }
-\examples{
-
-}
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }

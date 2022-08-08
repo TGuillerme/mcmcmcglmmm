@@ -48,12 +48,6 @@ By default, no model is used for the random terms (\code{NULL}). The types of mo
 \item the name of the column(s) containing the factors for just as many levels of effects as there are non-empty levels in the data (\code{""} or \code{<NA>} are considered as empty levels). For example for the column \code{"clade"} the added random effects will be something like \code{us(at.level(clade,1):trait):animal} (i.e. a special phylogenetic random effect for clade 1) or \code{us(at.level(clade,1):trait):unit} for the residuals (i.e. a special residual effect for clade 1).
 }
 }
-\examples{
-
-}
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }

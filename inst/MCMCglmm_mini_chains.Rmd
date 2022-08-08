@@ -32,9 +32,6 @@ This vignette is intended to provide general details on `mcmcmcglmmm` that will 
 this_is_a_reproducible_R_snippet <- TRUE
 ```
 
-> And finally, details about specific parameters used in the paper for repeatability will be displayed in notes like this one.
-
-
 ## Installation and requirements
 
 To install the `mcmcmcglmmm` package, you can directly download the latest version on GitHub using `devtools`:
@@ -78,7 +75,7 @@ residuals = ~ us(trait):units
 ```
 <!-- TG:TODO: explain that much better) -->
 
-> In THE_PAPER we used a dataset of 8748 species and eight PC dimensions, and a model with 36 nested random terms: one for the whole phylogeny, eight for each super-order containing at least 15 species and 27 for each order containing at least 15 species and one residual term. % NC: This adds to 37...
+<!-- > In THE_PAPER we used a dataset of 8748 species and eight PC dimensions, and a model with 35 nested random terms: one for the whole phylogeny, eight for each super-order containing at least 15 species and 27 for each order containing at least 15 species and one residual term. -->
 
 Although this method is efficiently implemented on small to relatively large datasets, the major hurdle is the calculation of the variance-covariance matrix; this takes a length of time that increases following a power law with both the number of species and the number of dimensions.
 Therefore, this method becomes easily untractable on large datasets (>8k species and >3 dimensions).
@@ -96,9 +93,9 @@ In brief, it runs multiple short `MCMCglmm` analyses on multiple trees and pulls
 The mini chains `MCMCglmm` method (`mcmcmcglmmm`) effectively works by running many very short parallel `MCMCglmm` on the same number of different tree topologies.
 Effectively each mini chain generates a very small number of samples post-burnin (e.g. 10) and combines them across many replicates (e.g. 1000) into a chain containing effectively many samples (e.g. 10000), each run independently on a different tree topology.
 
-![Figure 2](mini-chains_diagram.png)
+![](mini-chains_diagram.png)
 
-##### Figure 2: {#fig2}
+##### Figure 1: {#fig1}
 Mini chains diagram: the numerical values displayed here (number of chains, priors, etc...) are used as examples and should be tuned to fit specific questions and datasets.
 
 In more detail, the method works as follows:
@@ -111,9 +108,8 @@ In more detail, the method works as follows:
 Each step is described and demonstrated in more detail below.
 
 ### Effectiveness
-%NC: Wouldn't it be more sensible here to include info from this paper not suddenly introduce this other random paper?
-In a practical implementation of the mini-chains for another project, we ran a similar model on 8748 species with eight dimensions and 31 nested levels.
-Using this method, it took 20 parallel cores with 8GB of RAM, two months to complete the model with each individual mini-chain running for around 40 hours (using the SHARC cluster at University of Sheffield: CITE).
+In a practical implementation of the mini-chains for another project, we ran a similar model on 8748 species with eight dimensions and 35 nested levels.
+Using this method, it took 20 parallel cores with 8GB of RAM, two months to complete the model with each individual mini-chain running for around 40 hours (using the SHARC cluster at University of Sheffield: @@@CITE).
 We estimated that the same model using the normal `MCMCglmm` implementation would have required 2.1 years and 4TB of RAM. 
 
 This method thus allows us to run multivariate GLMMs on large datasets and across a tree distribution.
@@ -154,7 +150,7 @@ legend("bottomleft", lty = c(1,1,1), col = c("blue", "darkgreen", "orange"), leg
 axisPhylo()
 ```
 
-##### Figure 5: {#fig5}
+##### Figure 2: {#fig2}
 The Charadriiformes data used in this pipeline example. The axis units are millions of years ago.
 
 
@@ -165,14 +161,14 @@ We first ran three parameterisation chains for 50,000 generations with no burnin
 From this chain we extracted: 1) the maximum burnin time as 1.1 times the number of generations required to reach the median likelihood value; and 2) the median posteriors of the model (discarding the burnin) as priors for our mini chain models with a belief parameter value of 5%.
 We then ran 50 mini chains for 10 samples each using the previous sampling rate (500 generations) and the extracted parameters from the parameterisation chain (the burnin and priors described above).
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = TRUE, eval = FALSE}
 ## Making the parameterisation chains
 parameterisation_chains <- make.mini.chains(data = charadriiformes$data,
-                                           dimensions = c("PC1", "PC2", "PC3"),
-                                           randoms = c("global", "clade"),
-                                           residuals = "global",
-                                           tree = charadriiformes$tree,
-                                           parameters = list(nitt = 50000, burnin = 0, thin = 500))
+                                            dimensions = c("PC1", "PC2", "PC3"),
+                                            randoms = c("global", "clade"),
+                                            residuals = "global",
+                                            tree = charadriiformes$tree,
+                                            parameters = list(nitt = 50000, burnin = 0, thin = 500))
 ```
 
 The main arguments here are:
@@ -188,20 +184,20 @@ The main arguments here are:
 The other arguments here are either self evident (e.g `verbose`) or the same as for `MCMCglmm` (here `parameters` is just a list of arguments with the correct names to be passed to `MCMCglmm`).
 Once the mini chain is ready, you can run it using the `run.mini.chains` function given the mini chain (`param_MCMCglmm`) and a number of replicates (here 3).
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = TRUE, eval = FALSE}
 ## Running the parameterisation chains
 param_results <- run.mini.chains(parameterisation_chains, replicates = 3)
 ## Saving the parameter model results
 save(param_results, file = "param_results.rda")
 ```
 
-> For THE_PAPER we ran three independent parameterisation chains for 100k iterations (`nitt`) with a sampling (`thin`) every 500 iterations.
+<!-- > For THE_PAPER we ran three independent parameterisation chains for 100k iterations (`nitt`) with a sampling (`thin`) every 500 iterations. -->
 
 Once the three chains are computed as a list of parameterisation models, we can visualise the diagnosis status of it.
 Note that ideally the parameterisation chains converge, however, there can be a time trade-off between running the model on the consensus tree until it converges and then running the mini-chains: the longer the parameterisation chains the longer the resulting mini chains will take.
 Ultimately the focus on the convergence of the mini chains is more important and can be used for further analysis.
 
-```{r, echo = FALSE, eval = TRUE}
+```{r, echo = TRUE, eval = TRUE}
 ## Loading the parameter results
 load("param_results.rda")
 ## Diagnosing the results
@@ -210,7 +206,7 @@ diagnose.mini.chains(param_results)
 
 Once relatively happy with the diagnosed chains (in this case a potential scale reduction factor higher than 1), we can automatically extract the parameters from the three chains to be used as the parameters for the mini chains:
 
-```{r, echo = FALSE, eval = TRUE}
+```{r, echo = TRUE, eval = TRUE}
 ## Extracting the parameters
 params <- extract.parameters(param_results)
 
@@ -224,17 +220,17 @@ We can then build a mini chain with the same model as previously but using the n
 In this example, we replicated the chains 100 times across 10 random trees.
 We then can use the `combine.mini.chains` function to combine these 100 mini-chains into a single `MCMCglmm` posterior chain. 
 
-> For THE_PAPER we ran the analysis 400 times across 1000 random trees.
+<!-- > For THE_PAPER we ran the analysis 400 times across 1000 random trees. -->
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = TRUE, eval = FALSE}
 ## Making the mini chains
 parameterisation_chains <- make.mini.chains(data = charadriiformes$data,
-                                           dimensions = c("PC1", "PC2", "PC3"),
-                                           randoms = c("global", "clade"),
-                                           residuals = "global",
-                                           priors = params$priors,
-                                           tree = charadriiformes$tree_distribution,
-                                           parameters = list(
+                                            dimensions = c("PC1", "PC2", "PC3"),
+                                            randoms = c("global", "clade"),
+                                            residuals = "global",
+                                            priors = params$priors,
+                                            tree = charadriiformes$tree_distribution,
+                                            parameters = list(
                                             nitt = params$burnin + samples*sampling,
                                             burning = params$burnin,
                                             thin = sampling))
@@ -251,7 +247,7 @@ These results can then be diagnosed as previously.
 However, because the chains were combined, the `diagnose.mini.chains` function doesn't check for a potential scale reduction factor (i.e. a diagnosis of convergence) but rather for the resulting effective sample size in the posteriors.
 It is good practice to reach an effective sample size of at least 200, but for the brevity of this example some parameters don't reach that value.
 
-```{r, echo = FALSE, eval = TRUE}
+```{r, echo = TRUE, eval = TRUE}
 ## Loading the combined mini chains
 load("posteriors.rda")
 ## Plotting the posteriors' effective sample sizes
@@ -260,6 +256,6 @@ silent <- diagnose.mini.chains(posteriors, plot = TRUE)
 
 ## Elaboration and innovation analysis
 
-To then analyse these results in the same way we did for THE_PAPER, please refer to [the projections analysis vignette](link) from the `dispRity` package.
+To then analyse these results <!-- in the same way we did for THE_PAPER, --> please refer to [the projections analysis vignette](link) from the `dispRity` package.
 
 ## References

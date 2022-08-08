@@ -12,12 +12,6 @@ combine.mini.chains(mini.chains)
 \description{
 Combine the mini chains results into a big MCMCglmm object (MCMCglmm)
 }
-\examples{
-
-}
-\seealso{
-
-}
 \author{
 Thomas Guillerme
 }
