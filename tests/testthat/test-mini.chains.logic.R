@@ -254,6 +254,6 @@ test_that("randomised.factors work", {
                 "~us(trait):animal")
     expect_equal(paste0(as.character(tust[[1]]$Residual$formula), collapse = ""),
                 "~us(at.level(clade, 1):trait):units + us(at.level(clade, 2):trait):units + us(at.level(clade, 3):trait):units")
-    expect_equal(round(sum(tust[[1]]$Sol), 6), round(5.383184, 6))  
+    expect_equal(round(sum(tust[[1]]$Sol), 5), round(5.383184, 5))  
 
 })
