@@ -117,7 +117,11 @@ make.mini.chains <- function(data, dimensions, tree, trait.family = "gaussian", 
     ## Moving the model to the second component of the formula (third)
     fixed[[length(fixed_model) + 1]] <- fixed[[length(fixed_model)]]
     ## Adding the trait model as the first component (first)
-    fixed[[length(fixed_model)]] <- as.formula(paste0("~cbind(", paste(colnames(data)[select_dim], collapse = ", "), ")"))[[2]]
+    if(length(select_dim) == 1) {
+        fixed[[length(fixed_model)]] <- as.formula(paste0("~", colnames(data)[select_dim]))[[2]]
+    } else {
+        fixed[[length(fixed_model)]] <- as.formula(paste0("~cbind(", paste(colnames(data)[select_dim], collapse = ", "), ")"))[[2]]
+    }
 
     ## Random effect
     random <- NULL

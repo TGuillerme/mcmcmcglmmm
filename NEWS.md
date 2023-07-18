@@ -1,3 +1,10 @@
+mcmcmcglmm v0.9.1 (2022-10-17)
+=========================
+
+### BUG FIXES
+
+ * `make.mini.chains` now correctly handles one dimensional input variables.
+
 mcmcmcglmmm v0.9.0 (2022-08-08)
 =========================
 

@@ -190,14 +190,14 @@ test_that("run/combine.mini.chains works", {
     expect_is(test, c("mini.chains"))
     expect_equal(length(test), 2)
     expect_is(test[[1]], "MCMCglmm")
-    expect_equal(names(test[[1]]), c("Sol","Lambda","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional", "tree"))
+    expect_equal(names(test[[1]]), c("Sol","Lambda","ThetaS","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional","Wscale","tree"))
 
     ## Test the runnings
     test <- run.mini.chains(mini.chains, replicates = 10)
     expect_is(test, c("mini.chains"))
     expect_equal(length(test), 10)
     expect_is(test[[1]], "MCMCglmm")
-    expect_equal(names(test[[1]]), c("Sol","Lambda","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional"))
+    expect_equal(names(test[[1]]),c("Sol","Lambda","ThetaS","VCV","CP","Liab","Fixed","Random","Residual","Deviance","DIC","X","Z","ZR","XL","ginverse","error.term","family","Tune","meta","y.additional","Wscale"))
     
     ## Test the combining
     tust <- combine.mini.chains(test)
@@ -218,7 +218,6 @@ test_that("run/combine.mini.chains works", {
     expect_equal(dim(tust$Sol), c(18, 2))
     expect_equal(dim(tust$VCV), c(18, 8))
     expect_true(file.remove("../test_name_2.rda"))
-
 })
 
 test_that("randomised.factors work", {
@@ -255,5 +254,4 @@ test_that("randomised.factors work", {
     expect_equal(paste0(as.character(tust[[1]]$Residual$formula), collapse = ""),
                 "~us(at.level(clade, 1):trait):units + us(at.level(clade, 2):trait):units + us(at.level(clade, 3):trait):units")
     expect_equal(round(sum(tust[[1]]$Sol), 5), round(5.383184, 5))  
-
 })

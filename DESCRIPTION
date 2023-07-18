@@ -1,13 +1,13 @@
 Package: mcmcmcglmmm
 Title: Mini chains MCMCglmm methods
-Version: 0.9.0
-Date: 2022-08-08
+Version: 0.9.1
+Date: 2022-10-17
 Author: Thomas Guillerme [aut, cre, cph]
 Maintainer: Thomas Guillerme <guillert@tcd.ie>
 Description: Running mini chains for MCMCglmm analyses
 Depends:
     R (>= 3.6.3),
-    dispRity (>= 1.6.8),
+    dispRity (>= 1.7),
     MCMCglmm
 Imports:
     coda,
@@ -18,6 +18,6 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 Suggests: 
     testthat
