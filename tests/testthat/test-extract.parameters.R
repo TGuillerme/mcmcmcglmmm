@@ -38,6 +38,6 @@ test_that("extract.parameters works", {
     expect_equal(sum(round(test$priors$G$G1$V, 1)), 0.3)
     expect_equal(sum(round(test$priors$G$G2$V, 1)), 0.2)
     expect_equal(sum(round(test$priors$G$G3$V, 1)), 0.2)
-    expect_equal(sum(round(test$priors$G$G4$V, 1)), 0)
+    expect_equal(sum(round(test$priors$G$G4$V, 1)), 0.3)
     expect_equal(sum(round(test$priors$R$R1$V, 2)), 0.02)
 })
