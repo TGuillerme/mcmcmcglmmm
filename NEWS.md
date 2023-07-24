@@ -1,11 +1,11 @@
-mcmcmcglmm v0.9.2 (2023-07-18)
+mcmcmcglmm v0.9.3 (2023-07-24)
 =========================
 
 ### BUG FIXES
 
  * `make.mini.chains` now correctly handles one dimensional input variables.
  * `extract.parameters` now correctly calculates the priors for the residuals.
- * `extract.parameters` now correctly handles models with either no residuals or random terms.
+ * `extract.parameters` and `diagnose.mini.chains` now correctly handles models with either no residuals or random terms.
 
 mcmcmcglmmm v0.9.0 (2022-08-08)
 =========================

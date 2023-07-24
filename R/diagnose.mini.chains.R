@@ -46,11 +46,15 @@ diagnose.mini.chains <- function(mini.chains, what = "eff.samp", plot = TRUE, ..
     elements <- c("solutions", "Gcovariances", "Rcovariances") # TODO: make that automatic
     diagnoses <- lapply(as.list(elements), function(one_element, summarised, what) return(summarised[[one_element]][, what]), summarised, what)
     names(diagnoses) <- elements
-
+    ## Remove the empties
+    if(any(nulls <- unlist(lapply(diagnoses, is.null)))) {
+        diagnoses <- diagnoses[-nulls]
+        elements <- elements[-nulls]
+    }
 
     ## Plot the diagnosis
     if(plot) {
-
+        ## Setting the plot sizes
         op <- par(mfrow = c(length(diagnoses),1))
 
         ## Do one plot
