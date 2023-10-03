@@ -1,7 +1,7 @@
 [![R-CMD-check](https://github.com/TGuillerme/mcmcmcglmmm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/TGuillerme/mcmcmcglmmm/actions/workflows/R-CMD-check.yaml)
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
-<!-- [![develVersion](https://img.shields.io/badge/devel%20version-1.6.8-green.svg?style=flat)](https://github.com/TGuillerme/dispRity) -->
-<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1186467.svg)](https://doi.org/10.5281/zenodo.1186467) -->
+[![develVersion](https://img.shields.io/badge/devel%20version-0.9-green.svg?style=flat)](https://github.com/TGuillerme/mcmcmcglmmmm)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6974582.svg)](https://doi.org/10.5281/zenodo.6974582)
+
 
  
 ### **`mcmcmcglmmm`** is a `R` package for running the mini-chains MCMCglmm method pipeline.
